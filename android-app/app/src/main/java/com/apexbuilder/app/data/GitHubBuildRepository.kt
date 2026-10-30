@@ -268,7 +268,8 @@ class GitHubBuildRepository(
             }
 
             if (run != null) {
-                val latest = runs.firstOrNull { it.id == run.id } ?: run
+                val currentId = run.id
+                val latest = runs.firstOrNull { it.id == currentId } ?: run
                 run = latest
                 if (latest.status != reportedStatus) {
                     reportedStatus = latest.status

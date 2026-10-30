@@ -289,7 +289,7 @@ class BuilderViewModel(
         }
         if (form.sourceMode == SourceMode.Website) {
             val uri = runCatching { Uri.parse(form.websiteUrl.trim()) }.getOrNull()
-            if (uri?.scheme !in listOf("http", "https") || uri.host.isNullOrBlank()) {
+            if (uri?.scheme !in listOf("http", "https") || uri?.host.isNullOrBlank()) {
                 return "Enter a valid website URL beginning with https://."
             }
         }
