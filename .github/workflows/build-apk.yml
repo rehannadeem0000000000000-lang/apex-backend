@@ -1,38 +1,70 @@
 name: Build User APK
+
 on:
   workflow_dispatch:
     inputs:
-      appName:
-        description: 'App Name'
+      build_id:
+        description: 'Build ID'
         required: true
-      packageName:
-        description: 'Package Name'
+      config_path:
+        description: 'Path to config.json'
         required: true
+      source_path:
+        description: 'Path to source files'
+        required: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-      - name: Install SDK packages
-        run: yes | sdkmanager --licenses > /dev/null || true; sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.7"
-      - name: Copy Template
-        run: mkdir -p build-temp && cp -r capacitor-template/* build-temp/
+          packages: ""
+
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Capacitor App
+        run: |
+          # 1. Create a web directory and copy the user's source files
+          mkdir -p www
+          cp -r "${{ github.event.inputs.source_path }}"/* www/ || true
+          
+          # 2. Initialize a fresh Capacitor project
+          npm init -y
+          npm install @capacitor/core @capacitor/android
+          npm install -D @capacitor/cli
+          
+          # 3. Add Android platform
+          npx cap init "MyApp" "com.myapp" --web-dir=www
+          npx cap add android
+          npx cap sync android
+
       - name: Build APK
-        working-directory: build-temp/android
-        run: chmod +x gradlew || true; gradle :app:assembleDebug --stacktrace --no-daemon
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: user-apk
-          path: build-temp/android/app/build/outputs/apk/debug/*.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
