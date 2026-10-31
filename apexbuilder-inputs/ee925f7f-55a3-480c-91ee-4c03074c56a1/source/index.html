@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="AURUM — the gold trading desk. Live XAU/USD terminal, institutional signals, risk calculators and a trading academy built for gold traders."/>
+<title>AURUM — Gold Trading Desk | Live XAU/USD Terminal &amp; Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<!-- Tailwind CDN + config (must stay inline — configures the CDN before classes render) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      ink: { 950:'#0a0908', 900:'#100e0a', 850:'#14110c', 800:'#1a1712', 700:'#26221a' },
+      line: { DEFAULT:'#2b2517', soft:'#1e1a12' },
+      gold: { 200:'#f7e7ae', 300:'#f1d98a', 400:'#e6c65c', 500:'#d4af37', 600:'#b08d2a', 700:'#8a6d1f', 900:'#3d2f0e' },
+      bull: '#3ecf8e',
+      bear: '#f26d6d'
+    },
+    fontFamily: {
+      display: ['"Playfair Display"','Georgia','serif'],
+      sans: ['Inter','ui-sans-serif','system-ui','sans-serif'],
+      mono: ['"JetBrains Mono"','ui-monospace','monospace']
+    }
+  }}
+};
+</script>
+
+<!-- Charting library -->
+<script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="styles.css"/>
+</head>
+
+<body class="bg-ink-950 font-sans antialiased">
+
+<!-- ============================== HEADER ============================== -->
+<header id="hdr" class="fixed inset-x-0 top-0 z-50 border-b border-transparent transition-all duration-300">
+  <div class="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <a href="#top" class="flex items-center gap-3">
+      <span class="flex h-10 w-10 items-center justify-center rounded-lg border border-gold-500/50 bg-gold-500/10 text-gold-400" data-i="gem"></span>
+      <span class="leading-none">
+        <span class="block font-display text-[22px] font-bold tracking-[0.14em] text-[#f4efe3]">AURUM</span>
+        <span class="mt-0.5 block font-mono text-[9px] font-semibold tracking-[0.34em] text-gold-500">GOLD TRADING DESK</span>
+      </span>
+    </a>
+    <nav id="nav" class="hidden items-center gap-7 lg:flex"></nav>
+    <div class="flex items-center gap-3">
+      <a href="#terminal" class="hidden items-center gap-2.5 rounded-full border border-line bg-ink-900/80 py-1.5 pl-3 pr-3 md:flex">
+        <span class="font-mono text-[10px] font-bold tracking-widest text-gold-500">XAU/USD</span>
+        <span id="hp" class="mono text-[13px] font-semibold text-bull">3,341.80</span>
+        <span id="hc" class="flex items-center gap-0.5 font-mono text-[11px] text-bull"></span>
+        <span id="hs" class="sd s-demo ml-1"></span>
+      </a>
+      <a href="#pricing" class="btn hidden items-center gap-1.5 px-5 py-2.5 text-[13px] sm:flex">Join the Desk <span data-i="au" data-c="h-4 w-4" data-s="2.4"></span></a>
+      <button id="mb" class="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-[#e8e1cf] lg:hidden"><span id="mi" data-i="menu" data-c="h-5 w-5"></span></button>
+    </div>
+  </div>
+  <nav id="mm" class="hidden overflow-hidden border-b border-line bg-ink-950/95 backdrop-blur-xl lg:hidden">
+    <div id="mml" class="space-y-1 px-4 py-4"></div>
+  </nav>
+</header>
+
+<main>
+<!-- ============================== HERO ============================== -->
+<section id="top" class="relative overflow-hidden pt-[68px]">
+  <div class="absolute inset-0">
+    <img src="https://images.pexels.com/photos/35065436/pexels-photo-35065436.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200" alt="" class="h-full w-full object-cover object-center opacity-25"/>
+    <div class="absolute inset-0 bg-ink-950/55"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_70%_20%,rgba(212,175,55,0.16),transparent_65%)]"></div>
+    <div class="bp absolute inset-0 opacity-60"></div>
+    <div class="absolute inset-x-0 bottom-0 h-40 [background:linear-gradient(to_top,#0a0908,transparent)]"></div>
+  </div>
+  <div class="relative mx-auto max-w-7xl px-4 pb-14 pt-16 sm:px-6 lg:px-8 lg:pb-20 lg:pt-24">
+    <div class="grid items-center gap-12 lg:grid-cols-12">
+      <div class="lg:col-span-7">
+        <div class="inline-flex items-center gap-2.5 rounded-full border border-gold-600/40 bg-ink-900/70 py-1.5 pl-1.5 pr-4 backdrop-blur">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-bull/30 bg-bull/10 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.18em] text-bull"><span class="h-1.5 w-1.5 rounded-full bg-bull pdot"></span>LIVE</span>
+          <span class="text-xs font-medium tracking-wide text-[#d8cfb6]">London session open — gold holding above $3,340</span>
+        </div>
+        <h1 class="mt-6 font-display text-[44px] font-semibold leading-[1.04] tb text-[#f7f2e2] sm:text-6xl lg:text-[68px]">Trade gold like the <em class="italic text-gold-400">institutions</em> do.</h1>
+        <p class="mt-5 max-w-xl text-[16.5px] leading-relaxed text-[#b3aa94]">AURUM is a trading desk built exclusively for the gold market — a live XAU/USD terminal, institutional order-flow analysis, and risk-managed signals from traders who watch one chart all day: gold.</p>
+        <div class="mt-8 flex flex-wrap items-center gap-3.5">
+          <a href="#terminal" class="btn inline-flex items-center gap-2 px-6 py-3.5 text-sm">Enter the Live Terminal <span data-i="ar" data-c="h-4 w-4" data-s="2.4"></span></a>
+          <a href="#signals" class="btn-o inline-flex items-center gap-2 bg-ink-900/60 px-6 py-3.5 text-sm backdrop-blur"><span class="text-gold-400" data-i="radio" data-c="h-4 w-4"></span> Today's Signals</a>
+        </div>
+        <div class="mt-6 flex items-center gap-2 text-xs text-[#8d8471]"><span class="text-gold-500" data-i="shield" data-c="h-4 w-4"></span>No card required · Cancel anytime · Trading involves risk — see disclaimer</div>
+        <div id="stats" class="mt-12 grid max-w-xl grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4"></div>
+      </div>
+      <div class="lg:col-span-5">
+        <div class="relative rounded-2xl border border-gold-600/35 bg-ink-900/85 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+          <div class="absolute -top-px left-8 right-8 h-px bg-gold-400/50"></div>
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2"><span class="font-mono text-sm font-bold tracking-widest text-[#f0e9d6]">XAU/USD</span><span class="rounded border border-line bg-ink-800 px-1.5 py-0.5 font-mono text-[9.5px] tracking-widest text-[#9a917c]">SPOT GOLD</span></div>
+              <div class="mt-0.5 text-xs text-[#8d8471]">Troy ounce · USD</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-bull/30 bg-bull/10 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.18em] text-bull"><span class="h-1.5 w-1.5 rounded-full bg-bull pdot"></span>LIVE</span>
+              <span id="hsc" class="sd s-demo"></span>
+            </div>
+          </div>
+          <div class="mt-5 flex flex-wrap items-end gap-3">
+            <span id="heroP" class="mono text-[42px] font-bold leading-none text-bull transition-colors duration-300">3,341.80</span>
+            <span id="heroC" class="mb-1 flex items-center gap-1 font-mono text-sm font-semibold text-bull"></span>
+          </div>
+          <div class="mt-4"><div id="heroS"></div><div class="mt-1 flex justify-between font-mono text-[10px] text-[#6f6753]"><span>-2h</span><span>-1h</span><span>now</span></div></div>
+          <div class="mt-5 grid grid-cols-3 gap-3 border-t border-line-soft pt-5">
+            <div><div class="tk">Day Open</div><div id="hOpen" class="mono mt-1 text-sm font-semibold text-[#e9e2cd]">3,312.40</div></div>
+            <div><div class="tk">Day High</div><div id="hHigh" class="mono mt-1 text-sm font-semibold text-bull">3,358.90</div></div>
+            <div><div class="tk">Day Low</div><div id="hLow" class="mono mt-1 text-sm font-semibold text-bear">3,301.25</div></div>
+          </div>
+          <div class="mt-5 flex items-center justify-between rounded-xl border border-line-soft bg-ink-850 px-4 py-3">
+            <div class="font-mono text-[11px] text-[#8d8471]">BID <span id="hBid" class="ml-1 font-semibold text-[#e9e2cd]">3,341.62</span></div>
+            <div class="font-mono text-[11px] text-[#8d8471]">SPREAD <span class="ml-1 font-semibold text-gold-400">0.36</span></div>
+            <div class="font-mono text-[11px] text-[#8d8471]">ASK <span id="hAsk" class="ml-1 font-semibold text-[#e9e2cd]">3,341.98</span></div>
+          </div>
+          <a href="#calculator" class="mt-5 block rounded-full border border-gold-500/50 py-3 text-center text-sm font-bold text-gold-300 transition-colors hover:bg-gold-500 hover:text-ink-950">Size a Position</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TICKER ============================== -->
+<div class="tkw relative overflow-hidden border-y border-line bg-ink-900">
+  <div id="tkr" class="flex w-max mq"></div>
+  <div class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-[radial-gradient(ellipse_at_left,rgba(10,9,8,0.9),transparent)]"></div>
+  <div class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-[radial-gradient(ellipse_at_right,rgba(10,9,8,0.9),transparent)]"></div>
+</div>
+
+<!-- ============================== MARKETS ============================== -->
+<section id="markets" class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Precious Metals Board</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">The metals board, <em class="italic text-gold-400">live</em></h2>
+      <p class="mut mt-4 text-base leading-relaxed">Every metal that matters to a gold trader — spot prices, day ranges and 24-hour momentum, refreshed tick by tick.</p>
+    </div>
+    <div id="metals" class="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4"></div>
+    <div class="rv mt-6">
+      <div class="card overflow-hidden">
+        <div class="flex items-center justify-between border-b border-line-soft px-5 py-3">
+          <span class="font-mono text-[10.5px] font-bold uppercase tracking-[0.24em] text-gold-500">Macro Watch — what moves gold</span>
+          <span class="hidden font-mono text-[10.5px] text-[#6f6753] sm:block">DXY ↓ = gold tailwind</span>
+        </div>
+        <div id="macro" class="grid sm:grid-cols-2 lg:grid-cols-5"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TERMINAL ============================== -->
+<section id="terminal" class="relative py-20 lg:py-24">
+  <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_50%_0%,rgba(212,175,55,0.07),transparent_70%)]"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">The Aurum Terminal</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">One chart. <em class="italic text-gold-400">Total focus.</em></h2>
+      <p class="mut mt-4 text-base leading-relaxed">A professional-grade XAU/USD chart with live ticks, volume, a 20-period moving average, pivot levels and desk sentiment — the same view our analysts trade from.</p>
+    </div>
+    <div class="rv mt-12">
+      <div class="card overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-line px-4 py-3 sm:px-5">
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-sm font-bold tracking-widest text-[#f0e9d6]">XAU/USD</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-bull/30 bg-bull/10 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.18em] text-bull"><span class="h-1.5 w-1.5 rounded-full bg-bull pdot"></span>LIVE</span>
+            <span id="ts" class="sd s-demo"></span>
+          </div>
+          <div id="ohlc" class="hidden items-center gap-3 font-mono text-[11px] text-[#9a917c] md:flex"></div>
+          <div class="ml-auto flex flex-wrap items-center gap-3">
+            <div id="tfB" class="flex rounded-lg border border-line bg-ink-850 p-0.5"></div>
+            <div id="typB" class="flex rounded-lg border border-line bg-ink-850 p-0.5"></div>
+            <button id="maT" class="rounded-lg border border-gold-600/60 bg-gold-500/10 px-3 py-1.5 font-mono text-[11.5px] font-semibold text-gold-300">MA 20</button>
+          </div>
+        </div>
+        <div class="grid lg:grid-cols-[1fr_308px]">
+          <div class="relative">
+            <div id="chart" class="h-[420px] w-full sm:h-[480px] lg:h-[540px]"></div>
+            <div class="pointer-events-none absolute left-4 top-3 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[#6f6753]"><span data-i="cross" data-c="h-3 w-3"></span> Hover for OHLC · Scroll to zoom</div>
+          </div>
+          <aside class="border-t border-line bg-ink-850/60 lg:border-l lg:border-t-0">
+            <div class="border-b border-line-soft px-5 py-4">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5 font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#9a917c]"><span class="text-gold-500" data-i="act" data-c="h-3.5 w-3.5"></span> Desk Sentiment</span>
+                <span id="sentLbl" class="font-mono text-xs font-bold text-bull">50% BULLISH</span>
+              </div>
+              <div class="relative mt-3.5 h-2 overflow-hidden rounded-full">
+                <div class="absolute inset-0 flex">
+                  <div class="h-full flex-1 bg-bear/50"></div>
+                  <div class="h-full flex-1 bg-[#57503f]"></div>
+                  <div class="h-full flex-1 bg-bull/50"></div>
+                </div>
+              </div>
+              <div class="relative h-0"><div id="sentMk" class="absolute -top-[13px] h-3.5 w-[3px] -translate-x-1/2 rounded bg-gold-300 shadow-[0_0_8px_rgba(212,175,55,0.8)] transition-all duration-700" style="left:50%"></div></div>
+              <div class="mt-2.5 flex justify-between font-mono text-[9.5px] tracking-widest text-[#6f6753]"><span>STRONG SELL</span><span>NEUTRAL</span><span>STRONG BUY</span></div>
+              <div class="mt-3.5 grid grid-cols-2 gap-2.5">
+                <div class="rounded-lg border border-line-soft bg-ink-900 px-3 py-2"><div class="tk">RSI (14)</div><div id="rsi" class="mono mt-0.5 text-sm font-bold text-[#eee8d5]">50.0</div></div>
+                <div class="rounded-lg border border-line-soft bg-ink-900 px-3 py-2"><div class="tk">ATR (14)</div><div id="atr" class="mono mt-0.5 text-sm font-bold text-[#eee8d5]">$0.00</div></div>
+              </div>
+            </div>
+            <div class="border-b border-line-soft px-5 py-4">
+              <div class="font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#9a917c]">Key Levels · Pivots</div>
+              <div id="lvl" class="mt-3 space-y-1"></div>
+            </div>
+            <div class="px-5 py-4">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#9a917c]">Time &amp; Sales</span>
+                <span class="font-mono text-[9.5px] text-[#6f6753]">SIZE IN OZ</span>
+              </div>
+              <div id="prints" class="mt-2.5 space-y-[3px]"></div>
+            </div>
+          </aside>
+        </div>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-5 py-3 font-mono text-[11px] text-[#8d8471]">
+          <span>Session: <span class="text-[#e9e2cd]">London → New York overlap in 2h 14m</span></span>
+          <span>Volatility: <span id="vol" class="text-gold-300">Normal</span></span>
+          <span class="ml-auto hidden items-center gap-1.5 sm:flex"><span id="fd" class="h-1.5 w-1.5 rounded-full bg-gold-400"></span><span id="fl">Feed: connecting…</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SIGNALS ============================== -->
+<section id="signals" class="relative py-20 lg:py-24">
+  <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_10%,rgba(212,175,55,0.06),transparent_70%)]"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Signal Desk</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">Today's setups, <em class="italic text-gold-400">risk defined</em></h2>
+      <p class="mut mt-4 text-base leading-relaxed">Every idea ships with an entry, an invalidation and three targets — sized in R so your risk stays constant whether gold moves $5 or $50.</p>
+    </div>
+    <div id="sigs" class="mt-12 grid gap-5 lg:grid-cols-3"></div>
+    <div class="rv mt-8">
+      <div class="flex flex-col items-center justify-between gap-4 rounded-2xl border border-gold-700/40 bg-ink-900 px-6 py-5 sm:flex-row">
+        <div class="flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-gold-500/10 text-gold-400" data-i="lock" data-c="h-5 w-5"></span>
+          <p class="max-w-md text-sm leading-relaxed text-[#c9c0ab]"><span class="font-semibold text-[#f0e9d6]">9 more setups are live for members</span> — including the weekly swing map and London open scalps.</p>
+        </div>
+        <a href="#pricing" class="btn shrink-0 px-5 py-2.5 text-sm">Unlock Full Desk Access</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CALCULATOR ============================== -->
+<section id="calculator" class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Risk Engineering</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">Size every trade <em class="italic text-gold-400">before</em> you take it</h2>
+      <p class="mut mt-4 text-base leading-relaxed">Gold moves fast — $20 in a minute on CPI days. Fix your dollar risk first, then let the math tell you how many ounces you can hold.</p>
+    </div>
+    <div class="mt-12 grid gap-6 lg:grid-cols-2">
+      <div class="rv">
+        <div class="card h-full p-6">
+          <div class="flex items-center gap-2.5">
+            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-gold-500/10 text-gold-400" data-i="calc" data-c="h-[18px] w-[18px]"></span>
+            <h3 class="font-display text-xl font-semibold text-[#f4efe3]">Trade Parameters</h3>
+          </div>
+          <div class="mt-6 space-y-5">
+            <label class="block">
+              <span class="mb-1.5 flex items-center justify-between"><span class="lab">Account balance</span><span id="balHint" class="font-mono text-[10px] text-[#6f6753]">$25,000</span></span>
+              <input id="cBalR" type="range" min="1000"max="250000" step="1000" value="25000" class="gr w-full"/>
+              <input id="cBalN" type="number" value="25000" class="inp mt-2"/>
+            </label>
+            <label class="block">
+              <span class="mb-1.5 flex items-center justify-between"><span class="lab">Risk per trade</span><span id="riskHint" class="font-mono text-[10px] text-[#6f6753]">1.00% = $250.00</span></span>
+              <input id="cRisk" type="range" min="0.25" max="5" step="0.25" value="1" class="gr w-full"/>
+              <div class="mt-1.5 flex justify-between font-mono text-[10px] text-[#6f6753]"><span>0.25% conservative</span><span>5% aggressive</span></div>
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <label class="block">
+                <span class="mb-1.5 flex"><span class="lab">Entry price</span></span>
+                <div class="relative">
+                  <input id="cEntry" type="number" step="0.01" class="inp"/>
+                  <button id="cLive" class="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md bg-ink-700 px-2 py-1 font-mono text-[9.5px] font-bold tracking-wider text-gold-300 hover:bg-ink-800"><span data-i="cross" data-c="h-3 w-3"></span> LIVE</button>
+                </div>
+              </label>
+              <label class="block">
+                <span class="mb-1.5 flex"><span class="lab">Leverage</span></span>
+                <select id="cLev" class="inp appearance-none">
+                  <option value="10">1:10</option><option value="20">1:20</option><option value="50">1:50</option><option value="100" selected>1:100</option><option value="200">1:200</option><option value="500">1:500</option>
+                </select>
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <label class="block"><span class="mb-1.5 flex"><span class="lab">Stop loss</span></span><input id="cSL" type="number" step="0.01" class="inp focus:border-bear/70"/></label>
+              <label class="block"><span class="mb-1.5 flex"><span class="lab">Take profit</span></span><input id="cTP" type="number" step="0.01" class="inp focus:border-bull/70"/></label>
+            </div>
+            <div class="flex items-start gap-2 rounded-lg border border-line-soft bg-ink-850 px-3.5 py-3 text-[12px] leading-relaxed text-[#9a917c]">
+              <span class="mt-0.5 shrink-0 text-gold-500" data-i="info" data-c="h-4 w-4"></span>XAU/USD is quoted per troy ounce. One standard lot = 100 oz, so every $1 move is worth $100 per lot. Direction is inferred from your target.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rv" style="transition-delay:100ms">
+        <div class="card relative h-full overflow-hidden border-gold-700/40 p-6">
+          <div class="dot pointer-events-none absolute inset-0 opacity-40"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between">
+              <h3 class="font-display text-xl font-semibold text-[#f4efe3]">Position Plan</h3>
+              <span id="cDir" class="rounded-md bg-bull/10 px-2 py-1 font-mono text-[11px] font-bold tracking-widest text-bull">LONG XAU/USD</span>
+            </div>
+            <div class="mt-6 flex items-end gap-3">
+              <div>
+                <div class="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#9a917c]">Position size</div>
+                <div class="mono mt-1 text-[40px] font-bold leading-none text-gold-400"><span id="cLots">0.00</span><span class="ml-1.5 text-base font-semibold text-[#9a917c]">lots</span></div>
+              </div>
+              <div class="mono mb-1 text-sm text-[#9a917c]">= <span id="cOz">0.0</span> oz</div>
+            </div>
+            <div class="mt-6 grid grid-cols-2 gap-3">
+              <div class="tile"><div class="tk">Max loss at stop</div><div id="cRiskO" class="mono mt-1 text-[15px] font-bold text-bear">$0.00</div></div>
+              <div class="tile"><div class="tk">Reward at target</div><div id="cRew" class="mono mt-1 text-[15px] font-bold text-bull">$0.00</div></div>
+              <div class="tile"><div class="tk">Notional exposure</div><div id="cNot" class="mono mt-1 text-[15px] font-bold text-[#eee8d5]">$0</div></div>
+              <div class="tile"><div class="tk">Margin required</div><div id="cMar" class="mono mt-1 text-[15px] font-bold text-[#eee8d5]">$0.00</div></div>
+              <div class="tile"><div class="tk">Value per $1 move</div><div id="cPer" class="mono mt-1 text-[15px] font-bold text-[#eee8d5]">$0.00</div></div>
+              <div class="tile"><div class="tk">Stop distance</div><div id="cStop" class="mono mt-1 text-[15px] font-bold text-[#eee8d5]">$0.00</div></div>
+            </div>
+            <div class="mt-6">
+              <div class="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-widest text-[#7d7460]"><span>Reward : Risk</span><span id="cRR" class="text-sm font-bold text-gold-300">0.00 : 1</span></div>
+              <div class="mt-2 flex h-2.5 gap-1 overflow-hidden rounded-full"><div id="cBar" class="rounded-full bg-bull transition-all duration-500" style="flex-grow:1"></div><div class="rounded-full bg-bear transition-all duration-500" style="flex-grow:1"></div></div>
+              <div class="mt-1.5 flex justify-between font-mono text-[10px] text-[#6f6753]"><span id="cTpD" class="text-bull">reward $0.00</span><span id="cSlD" class="text-bear">risk $0.00</span></div>
+            </div>
+            <div id="cWarn" class="mt-5 hidden items-start gap-2 rounded-lg border border-bear/40 bg-bear/10 px-3.5 py-3 text-[12.5px] leading-relaxed text-[#f3c1c1]">
+              <span class="mt-0.5 shrink-0 text-bear" data-i="warn" data-c="h-4 w-4"></span><span id="cWarnT"></span>
+            </div>
+            <p class="mt-5 border-t border-line-soft pt-4 text-[11.5px] leading-relaxed text-[#7d7460]">Desk rule: never risk more than 2% on a single gold idea, and cut that in half into CPI, NFP and FOMC releases.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================== FEATURES ============================== -->
+<section class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid items-center gap-12 lg:grid-cols-2">
+      <div class="rv relative">
+        <div class="relative overflow-hidden rounded-2xl border border-line">
+          <img src="https://images.pexels.com/photos/5831522/pexels-photo-5831522.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200" alt="Trader monitoring gold charts" class="h-[420px] w-full object-cover lg:h-[520px]" loading="lazy"/>
+          <div class="absolute inset-0 bg-ink-950/35"></div>
+          <div class="absolute inset-x-0 bottom-0 h-40 [background:linear-gradient(to_top,rgba(10,9,8,0.92),transparent)]"></div>
+          <figure class="absolute bottom-5 left-5 right-5 rounded-xl border border-gold-600/35 bg-ink-900/90 p-4 backdrop-blur-md sm:right-auto sm:max-w-sm">
+            <blockquote class="font-display text-[15px] italic leading-snug text-[#f0e9d6]">"Gold rewards the patient and punishes the curious. Our job is to keep you on the right side of both."</blockquote>
+            <figcaption class="mt-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-gold-400">M. Okafor — Head of Desk, ex-COMEX floor</figcaption>
+          </figure>
+        </div>
+        <div class="absolute -right-4 -top-4 -z-10 h-full w-full rounded-2xl border border-gold-700/30"></div>
+      </div>
+      <div>
+        <div class="rv">
+          <div class="flex items-center gap-3"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Why Aurum</span></div>
+          <h2 class="h2 mt-4 tb">Built by gold traders, <em class="italic text-gold-400">for gold traders</em></h2>
+          <p class="mut mt-4 max-w-lg text-base leading-relaxed">Generalist platforms treat gold as one symbol among thousands. We treat it as a career. Everything at AURUM — the data, the analysis, the community — exists for a single market.</p>
+        </div>
+        <div id="feats" class="mt-9 space-y-6"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ACADEMY ============================== -->
+<section id="academy" class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Aurum Academy</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">Learn the metal, <em class="italic text-gold-400">master the market</em></h2>
+      <p class="mut mt-4 text-base leading-relaxed">Desk-written playbooks on the sessions, data prints and risk frameworks that actually move gold — no filler, no forex leftovers.</p>
+    </div>
+    <div class="rv mt-10 flex justify-center"><div id="acadF" class="flex flex-wrap justify-center gap-1.5 rounded-full border border-line bg-ink-900 p-1.5"></div></div>
+    <div id="acadG" class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+  </div>
+</section>
+
+<!-- ============================== PRICING ============================== -->
+<section id="pricing" class="relative py-20 lg:py-24">
+  <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_50%_30%,rgba(212,175,55,0.06),transparent_70%)]"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Membership</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">Pick your seat <em class="italic text-gold-400">at the desk</em></h2>
+      <p class="mut mt-4 text-base leading-relaxed">Start free, upgrade when the desk proves itself. Every paid plan comes with a 14-day money-back guarantee.</p>
+    </div>
+    <div class="rv mt-9 flex items-center justify-center gap-3">
+      <span id="lm" class="text-sm font-medium text-[#8d8471]">Monthly</span>
+      <button id="bill" class="relative h-7 w-[52px] rounded-full border border-line bg-ink-800 hover:border-gold-600/60" aria-label="Toggle annual billing"><span id="knob" class="absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-gold-500 transition-all duration-300" style="left:26px"></span></button>
+      <span id="la" class="text-sm font-medium text-[#f0e9d6]">Annual</span>
+      <span class="rounded-full border border-bull/40 bg-bull/10 px-2 py-0.5 font-mono text-[10.5px] font-bold text-bull">SAVE 20%</span>
+    </div>
+    <div id="pricing" class="mt-10 grid items-stretch gap-5 lg:grid-cols-3"></div>
+    <p class="mt-8 text-center text-xs text-[#7d7460]">Prices in USD. Membership is educational and does not constitute financial advice. Cancel in two clicks — keep Academy progress forever.</p>
+  </div>
+</section>
+
+<!-- ============================== TESTIMONIALS ============================== -->
+<section class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">From the Floor</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">Traders who <em class="italic text-gold-400">stopped guessing</em></h2>
+      <p class="mut mt-4 text-base leading-relaxed">48,000 members trade the same levels every morning. Here's what a few of them say about life on the desk.</p>
+    </div>
+    <div id="tstm" class="mt-12 grid gap-5 lg:grid-cols-3"></div>
+  </div>
+</section>
+
+<!-- ============================== FAQ ============================== -->
+<section id="faq" class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+    <div class="rv mx-auto max-w-2xl text-center">
+      <div class="rule"><span class="h-px w-8 bg-gold-500/70"></span><span class="eyebrow">Questions</span><span class="h-px w-8 bg-gold-500/70"></span></div>
+      <h2 class="h2 mt-4 tb">Before you <em class="italic text-gold-400">sit down</em> at the desk</h2>
+    </div>
+    <div id="faqList" class="mt-10 space-y-3"></div>
+  </div>
+</section>
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="relative">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rv">
+      <div class="dot relative overflow-hidden rounded-3xl border border-gold-700/40 bg-ink-900 px-6 py-12 text-center sm:px-12">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_50%_0%,rgba(212,175,55,0.12),transparent_70%)]"></div>
+        <div class="relative">
+          <span class="eyebrow">The Morning Nugget — free daily brief</span>
+          <h2 class="mx-auto mt-4 max-w-xl font-display text-4xl font-semibold leading-[1.1] tb text-[#f7f2e2] sm:text-5xl">The next gold move won't wait. <em class="italic text-gold-400">Neither should you.</em></h2>
+          <p class="mut mx-auto mt-4 max-w-lg text-[15px] leading-relaxed">One email before London open: the overnight range, the levels that matter, and the desk's bias for the day. Read by 48,000 gold traders.</p>
+          <form id="nl" class="mx-auto mt-7 flex max-w-md flex-col gap-2.5 sm:flex-row">
+            <div class="relative flex-1">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7d7460]" data-i="mail" data-c="h-4 w-4"></span>
+              <input id="nlE" type="email" required placeholder="you@example.com" class="w-full rounded-full border border-line bg-ink-850 py-3.5 pl-10 pr-4 text-sm text-[#f0e9d6] outline-none placeholder:text-[#6f6753] focus:border-gold-500/70"/>
+            </div>
+            <button type="submit" class="btn flex items-center justify-center gap-1.5 px-6 py-3.5 text-sm">Get the Brief <span data-i="ar" data-c="h-4 w-4" data-s="2.4"></span></button>
+          </form>
+          <div id="nlDone" class="mx-auto mt-7 hidden max-w-md items-center justify-center gap-2 rounded-full border border-bull/40 bg-bull/10 px-5 py-3.5 text-sm font-semibold text-bull"><span data-i="checkc" data-c="h-5 w-5"></span>You're on the list — first brief lands tomorrow at 06:45 GMT.</div>
+          <p class="mt-4 text-xs text-[#7d7460]">Free forever · Unsubscribe in one click · No spam, ever</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+    <div class="grid gap-10 border-t border-line-soft pt-12 md:grid-cols-6">
+      <div class="md:col-span-2">
+        <a href="#top" class="flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-lg border border-gold-500/50 bg-gold-500/10 text-gold-400" data-i="gem" data-s="1.8"></span>
+          <span class="leading-none"><span class="block font-display text-[22px] font-bold tracking-[0.14em] text-[#f4efe3]">AURUM</span><span class="mt-0.5 block font-mono text-[9px] font-semibold tracking-[0.34em] text-gold-500">GOLD TRADING DESK</span></span>
+        </a>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-[#9a917c]">The trading desk built exclusively for the gold market — live terminal, institutional analysis and risk-first education since 2019.</p>
+        <div class="mt-5 flex gap-2.5">
+          <a href="#top" class="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-[#a79d85] hover:border-gold-600/60 hover:text-gold-300" data-i="send"></a>
+          <a href="#top" class="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-[#a79d85] hover:border-gold-600/60 hover:text-gold-300" data-i="play"></a>
+          <a href="#top" class="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-[#a79d85] hover:border-gold-600/60 hover:text-gold-300" data-i="msg"></a>
+        </div>
+      </div>
+      <div id="cols" class="contents"></div>
+    </div>
+    <div class="mt-12 rounded-xl border border-line-soft bg-ink-900 px-5 py-4">
+      <p class="text-[11.5px] leading-relaxed text-[#7d7460]"><span class="font-bold uppercase tracking-wide text-[#9a917c]">Risk Warning: </span>Trading gold and other leveraged products carries a high level of risk and may not be suitable for all investors. Prices shown are sourced from Twelve Data and are indicative; they may differ from executable prices. Past performance of any strategy or signal is not indicative of future results. AURUM provides education and market analysis only — nothing here is financial advice. You could lose some or all of your capital; never trade with money you cannot afford to lose.</p>
+    </div>
+    <div class="flex flex-col items-center justify-between gap-3 py-7 font-mono text-[11px] text-[#6f6753] sm:flex-row">
+      <span>© <span id="yr">2025</span> AURUM Markets Ltd. All rights reserved.</span>
+      <span class="flex gap-5"><a href="#top" class="hover:text-gold-300">Privacy</a><a href="#top" class="hover:text-gold-300">Terms</a><a href="#top" class="hover:text-gold-300">Cookies</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
