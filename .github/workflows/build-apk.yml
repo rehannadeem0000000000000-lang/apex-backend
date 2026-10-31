@@ -42,6 +42,7 @@ jobs:
 
       - name: Setup Capacitor App
         run: |
+          set -x
           mkdir -p www
           cp -r "${{ github.event.inputs.source_path }}"/* www/ || true
           npm init -y
@@ -50,12 +51,14 @@ jobs:
           npx cap init "MyApp" "com.myapp" --web-dir=www
           npx cap add android
           npx cap sync android
+          chmod +x android/gradlew || true
 
       - name: Build APK
         working-directory: android
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          set -x
+          ls
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
