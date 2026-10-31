@@ -42,16 +42,11 @@ jobs:
 
       - name: Setup Capacitor App
         run: |
-          # 1. Create a web directory and copy the user's source files
           mkdir -p www
           cp -r "${{ github.event.inputs.source_path }}"/* www/ || true
-          
-          # 2. Initialize a fresh Capacitor project
           npm init -y
           npm install @capacitor/core @capacitor/android
           npm install -D @capacitor/cli
-          
-          # 3. Add Android platform
           npx cap init "MyApp" "com.myapp" --web-dir=www
           npx cap add android
           npx cap sync android
