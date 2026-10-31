@@ -1,0 +1,38 @@
+name: Build User APK
+on:
+  workflow_dispatch:
+    inputs:
+      appName:
+        description: 'App Name'
+        required: true
+      packageName:
+        description: 'Package Name'
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install SDK packages
+        run: yes | sdkmanager --licenses > /dev/null || true; sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+      - name: Copy Template
+        run: mkdir -p build-temp && cp -r capacitor-template/* build-temp/
+      - name: Build APK
+        working-directory: build-temp/android
+        run: chmod +x gradlew || true; gradle :app:assembleDebug --stacktrace --no-daemon
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-apk
+          path: build-temp/android/app/build/outputs/apk/debug/*.apk
