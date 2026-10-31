@@ -13,53 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: ""
-      - name: Install SDK packages
-        run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-      - name: Setup Capacitor App
+          node-version: 20
+      - name: Test Path
         run: |
-          echo "Looking for index.html in ${{ github.event.inputs.source_path }}"
-          INDEX_PATH=${find "${{ github.event.inputs.source_path }}" -name "index.html" | head -n 1}
-          echo "Found index.html at: $INDEX_PATH"
-          if [ -z "$INDEX_PATH" ]; then echo "ERROR: No index.html found!"; exit 1; fi
-          SRCE_DIR=$(dirname "$INDEX_PATH")
-          mkdir -p www
-          cp -r "$SRCE_DIR/." www/
-          npm init -y
-          npm install @capacitor/core @capacitor/android
-          npm install -D @capacitor/cli
-          npx cap init "MyApp" "com.myapp" --web-dir=www
-          npx cap add android
-          npx cap sync android
-          chmod +x android/gradlew || true
-      - name: Enable Release Optimizations
-        working-directory: android
-        run: |
-          sed -i 's/isMinifyEnabled false/isMinifyEnabled true/' app/build.gradle
-          sed -i ¢µ'0
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), 'proguard-rules.pro'
-          ' app/build.gradle
-      - name: Build Release APK
-        working-directory: android
-        run: |
-          ./gradlew assembleRelease --stacktrace --no-daemon
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: user-apk
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
-          if-no-files-found: error
+          echo "Looking in: ${{ github.event.inputs.source_path }}"
+          ls -R "${{ github.event.inputs.source_path }}"
